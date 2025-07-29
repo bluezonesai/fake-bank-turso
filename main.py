@@ -28,8 +28,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_folder=\'static\') # Correct static folder path
-app.config[\"SECRET_KEY\"] = \'asdf#FGSgvasgf$5$WGT\'
+app = Flask(__name__, static_folder='static') # Corrected static folder path
+app.config["SECRET_KEY"] = 'asdf#FGSgvasgf$5$WGT'
 
 app.register_blueprint(bank_bp, url_prefix=\"/api\")
 
