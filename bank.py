@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify, session
-from src.models.bank import db, User, Account, Transaction
 
 bank_bp = Blueprint('bank', __name__)
 
