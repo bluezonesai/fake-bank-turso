@@ -4,8 +4,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
-from src.models.bank import db
-from src.routes.bank import bank_bp
+from models.bank import db
+from routes.bank import bank_bp
 from dotenv import load_dotenv
 
 # Load environment variables
