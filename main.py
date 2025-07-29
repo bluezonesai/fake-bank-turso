@@ -1,25 +1,39 @@
 import os
 import sys
 
-# --- ADD THIS LINE --- #
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-# --- END ADDITION --- #
-
-# DON'T CHANGE THIS !!! (This line is now redundant but harmless if left)
-# sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Ensure the current directory is in the Python path
+# This line is still important for finding modules in the same directory
+project_root = os.path.abspath(os.path.dirname(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from flask import Flask, send_from_directory
-from models.bank import db
-from routes.bank import bank_bp
+
+# --- CORRECTED IMPORTS FOR FLAT STRUCTURE ---
+# Import bank.py and user.py directly as modules
+import bank # This will import bank.py
+import user # This will import user.py
+
+# Now access db and bank_bp from the imported modules
+from bank import db
+from bank import bank_bp # Assuming bank_bp is defined in bank.py
+
+# If user-related routes are in user.py, you might need:
+# from user import user_bp # Assuming user_bp is defined in user.py
+# app.register_blueprint(user_bp, url_prefix=\"/user\")
+# --- END CORRECTED IMPORTS ---
+
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_folder='static')
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+app = Flask(__name__, static_folder=\'static\') # Correct static folder path
+app.config[\"SECRET_KEY\"] = \'asdf#FGSgvasgf$5$WGT\'
 
-app.register_blueprint(bank_bp, url_prefix='/api')
+app.register_blueprint(bank_bp, url_prefix=\"/api\")
+
+# ... rest of your database configuration and app context
 
 # Configure database - Turso or fallback to SQLite
 TURSO_DATABASE_URL = os.environ.get("TURSO_DATABASE_URL")
