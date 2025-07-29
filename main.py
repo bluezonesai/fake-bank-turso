@@ -28,10 +28,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_folder='static') # Corrected static folder path
-app.config["SECRET_KEY"] = 'asdf#FGSgvasgf$5$WGT'
+app = Flask(__name__, static_folder='static') # Corrected
+app.config["SECRET_KEY"] = "asdf#FGSgvasgf$5$WGT" # Corrected
 
-app.register_blueprint(bank_bp, url_prefix=\"/api\")
+app.register_blueprint(bank_bp, url_prefix="/api") # Corrected
 
 # ... rest of your database configuration and app context
 
