@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Bank - Family Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .account-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .account-number {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .balance {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+        }
+
+        .transaction {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .transaction.outgoing {
+            border-left-color: #dc3545;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .transaction-amount.positive {
+            color: #28a745;
+        }
+
+        .transaction-amount.negative {
+            color: #dc3545;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .user-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Fake Bank</h1>
+            <p>Family Game Banking System</p>
+        </div>
+
+        <div class="content">
+            <!-- Login Screen -->
+            <div id="loginScreen" class="screen active">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="pin">PIN (4 digits)</label>
+                    <input type="password" id="pin" maxlength="4" placeholder="Enter your 4-digit PIN">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <button class="btn btn-secondary" onclick="showRegister()">Create New Account</button>
+            </div>
+
+            <!-- Register Screen -->
+            <div id="registerScreen" class="screen">
+                <div class="form-group">
+                    <label for="newUsername">Username</label>
+                    <input type="text" id="newUsername" placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label for="newPin">PIN (4 digits)</label>
+                    <input type="password" id="newPin" maxlength="4" placeholder="Choose a 4-digit PIN">
+                </div>
+                <div class="form-group">
+                    <label for="accountType">Account Type</label>
+                    <select id="accountType">
+                        <option value="personal">Personal Account</option>
+                        <option value="business">Business Account</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="register()">Create Account</button>
+                <button class="btn btn-secondary" onclick="showLogin()">Back to Login</button>
+            </div>
+
+            <!-- Dashboard Screen -->
+            <div id="dashboardScreen" class="screen">
+                <div class="user-info">
+                    <h3>Welcome, <span id="currentUser"></span>!</h3>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn" onclick="showTransfer()">Transfer Money</button>
+                    <button class="btn btn-secondary" onclick="showCharge()">Charge Customer</button>
+                </div>
+
+                <div id="accountsList"></div>
+
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Transfer Screen -->
+            <div id="transferScreen" class="screen">
+                <h3>Transfer Money</h3>
+                <div class="form-group">
+                    <label for="fromAccount">From Account</label>
+                    <select id="fromAccount"></select>
+                </div>
+                <div class="form-group">
+                    <label for="toAccountNumber">To Account Number</label>
+                    <input type="text" id="toAccountNumber" placeholder="Enter recipient's account number">
+                </div>
+                <div class="form-group">
+                    <label for="transferAmount">Amount</label>
+                    <input type="number" id="transferAmount" step="0.01" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="transferDescription">Description (optional)</label>
+                    <input type="text" id="transferDescription" placeholder="What's this for?">
+                </div>
+                <button class="btn" onclick="transfer()">Send Money</button>
+                <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+            </div>
+
+            <!-- Charge Screen -->
+            <div id="chargeScreen" class="screen">
+                <h3>Charge Customer</h3>
+                <div class="form-group">
+                    <label for="businessAccount">Business Account</label>
+                    <select id="businessAccount"></select>
+                </div>
+                <div class="form-group">
+                    <label for="customerUsername">Customer Username</label>
+                    <input type="text" id="customerUsername" placeholder="Customer's username">
+                </div>
+                <div class="form-group">
+                    <label for="customerPin">Customer PIN</label>
+                    <input type="password" id="customerPin" maxlength="4" placeholder="Customer's PIN">
+                </div>
+                <div class="form-group">
+                    <label for="chargeAmount">Amount</label>
+                    <input type="number" id="chargeAmount" step="0.01" placeholder="Enter charge amount">
+                </div>
+                <div class="form-group">
+                    <label for="chargeReason">Reason for Charge</label>
+                    <input type="text" id="chargeReason" placeholder="Why are you charging them?" required>
+                </div>
+                <div class="form-group">
+                    <label for="chargeDescription">Additional Details (optional)</label>
+                    <input type="text" id="chargeDescription" placeholder="Any extra details?">
+                </div>
+                <button class="btn" onclick="charge()">Charge Customer</button>
+                <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+            </div>
+
+            <!-- Transactions Screen -->
+            <div id="transactionsScreen" class="screen">
+                <h3>Transaction History</h3>
+                <div id="transactionsList"></div>
+                <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let userAccounts = [];
+
+        // Utility functions
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function formatCurrency(amount) {
+            return '$' + parseFloat(amount).toFixed(2);
+        }
+
+        // API functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(`/api${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+                
+                return result;
+            } catch (error) {
+                showAlert(error.message, 'error');
+                throw error;
+            }
+        }
+
+        // Authentication functions
+        async function login() {
+            const username = document.getElementById('username').value;
+            const pin = document.getElementById('pin').value;
+
+            if (!username || !pin) {
+                showAlert('Please enter both username and PIN', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('/login', 'POST', { username, pin });
+                currentUser = result.user;
+                userAccounts = result.accounts;
+                
+                document.getElementById('currentUser').textContent = currentUser.username;
+                loadDashboard();
+                showScreen('dashboardScreen');
+                showAlert('Login successful!');
+            } catch (error) {
+                // Error already shown by apiCall
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('newUsername').value;
+            const pin = document.getElementById('newPin').value;
+            const accountType = document.getElementById('accountType').value;
+
+            if (!username || !pin) {
+                showAlert('Please enter both username and PIN', 'error');
+                return;
+            }
+
+            if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+                showAlert('PIN must be exactly 4 digits', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('/register', 'POST', { username, pin, account_type: accountType });
+                showAlert('Account created successfully! You can now login.');
+                showLogin();
+            } catch (error) {
+                // Error already shown by apiCall
+            }
+        }
+
+        async function logout() {
+            try {
+                await apiCall('/logout', 'POST');
+                currentUser = null;
+                userAccounts = [];
+                showLogin();
+                showAlert('Logged out successfully');
+            } catch (error) {
+                // Error already shown by apiCall
+            }
+        }
+
+        // Dashboard functions
+        function loadDashboard() {
+            const accountsList = document.getElementById('accountsList');
+            accountsList.innerHTML = '';
+
+            userAccounts.forEach(account => {
+                const accountCard = document.createElement('div');
+                accountCard.className = 'account-card';
+                accountCard.innerHTML = `
+                    <div class="account-number">${account.account_number}</div>
+                    <div style="text-transform: capitalize; color: #666; margin: 5px 0;">${account.account_type} Account</div>
+                    <div class="balance">${formatCurrency(account.balance)}</div>
+                    <button class="btn" onclick="showTransactions(${account.id})" style="margin-top: 10px;">View Transactions</button>
+                `;
+                accountsList.appendChild(accountCard);
+            });
+
+            // Populate account dropdowns
+            populateAccountDropdowns();
+        }
+
+        function populateAccountDropdowns() {
+            const fromAccountSelect = document.getElementById('fromAccount');
+            const businessAccountSelect = document.getElementById('businessAccount');
+            
+            fromAccountSelect.innerHTML = '';
+            businessAccountSelect.innerHTML = '';
+
+            userAccounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.account_number;
+                option.textContent = `${account.account_number} (${formatCurrency(account.balance)})`;
+                fromAccountSelect.appendChild(option.cloneNode(true));
+
+                if (account.account_type === 'business') {
+                    businessAccountSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Transfer functions
+        async function transfer() {
+            const fromAccountNumber = document.getElementById('fromAccount').value;
+            const toAccountNumber = document.getElementById('toAccountNumber').value;
+            const amount = document.getElementById('transferAmount').value;
+            const description = document.getElementById('transferDescription').value;
+
+            if (!fromAccountNumber || !toAccountNumber || !amount) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('/transfer', 'POST', {
+                    from_account_number: fromAccountNumber,
+                    to_account_number: toAccountNumber,
+                    amount: parseFloat(amount),
+                    description
+                });
+
+                showAlert('Transfer successful!');
+                
+                // Update account balance
+                const account = userAccounts.find(acc => acc.account_number === fromAccountNumber);
+                if (account) {
+                    account.balance = result.new_balance;
+                }
+                
+                loadDashboard();
+                showDashboard();
+            } catch (error) {
+                // Error already shown by apiCall
+            }
+        }
+
+        // Charge functions
+        async function charge() {
+            const businessAccountNumber = document.getElementById('businessAccount').value;
+            const customerUsername = document.getElementById('customerUsername').value;
+            const customerPin = document.getElementById('customerPin').value;
+            const amount = document.getElementById('chargeAmount').value;
+            const reason = document.getElementById('chargeReason').value;
+            const description = document.getElementById('chargeDescription').value;
+
+            if (!businessAccountNumber || !customerUsername || !customerPin || !amount || !reason) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('/charge', 'POST', {
+                    business_account_number: businessAccountNumber,
+                    customer_username: customerUsername,
+                    customer_pin: customerPin,
+                    amount: parseFloat(amount),
+                    reason: reason,
+                    description: description
+                });
+
+                showAlert('Customer charged successfully!');
+                
+                // Update account balance
+                const account = userAccounts.find(acc => acc.account_number === businessAccountNumber);
+                if (account) {
+                    account.balance = result.business_new_balance;
+                }
+                
+                loadDashboard();
+                showDashboard();
+            } catch (error) {
+                // Error already shown by apiCall
+            }
+        }
+
+        // Transaction functions
+        async function showTransactions(accountId) {
+            try {
+                const transactions = await apiCall(`/accounts/${accountId}/transactions`);
+                const transactionsList = document.getElementById('transactionsList');
+                transactionsList.innerHTML = '';
+
+                if (transactions.length === 0) {
+                    transactionsList.innerHTML = '<p style="text-align: center; color: #666;">No transactions yet</p>';
+                } else {
+                    transactions.forEach(transaction => {
+                        const isIncoming = transaction.to_account_id === accountId;
+                        const transactionDiv = document.createElement('div');
+                        transactionDiv.className = `transaction ${isIncoming ? 'incoming' : 'outgoing'}`;
+                        
+                        const date = new Date(transaction.created_at).toLocaleDateString();
+                        const time = new Date(transaction.created_at).toLocaleTimeString();
+                        
+                        transactionDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: bold;">${transaction.transaction_type === 'charge' ? 'Charge' : 'Transfer'}</div>
+                                    <div style="color: #666; font-size: 12px;">${date} ${time}</div>
+                                    ${transaction.description ? `<div style="color: #666; font-size: 14px;">${transaction.description}</div>` : ''}
+                                </div>
+                                <div class="transaction-amount ${isIncoming ? 'positive' : 'negative'}">
+                                    ${isIncoming ? '+' : '-'}${formatCurrency(transaction.amount)}
+                                </div>
+                            </div>
+                        `;
+                        transactionsList.appendChild(transactionDiv);
+                    });
+                }
+
+                showScreen('transactionsScreen');
+            } catch (error) {
+                // Error already shown by apiCall
+            }
+        }
+
+        // Navigation functions
+        function showLogin() {
+            showScreen('loginScreen');
+            document.getElementById('username').value = '';
+            document.getElementById('pin').value = '';
+        }
+
+        function showRegister() {
+            showScreen('registerScreen');
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPin').value = '';
+        }
+
+        function showDashboard() {
+            showScreen('dashboardScreen');
+        }
+
+        function showTransfer() {
+            showScreen('transferScreen');
+            document.getElementById('toAccountNumber').value = '';
+            document.getElementById('transferAmount').value = '';
+            document.getElementById('transferDescription').value = '';
+        }
+
+        function showCharge() {
+            showScreen('chargeScreen');
+            document.getElementById('customerUsername').value = '';
+            document.getElementById('customerPin').value = '';
+            document.getElementById('chargeAmount').value = '';
+            document.getElementById('chargeReason').value = '';
+            document.getElementById('chargeDescription').value = '';
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            showLogin();
+        });
+    </script>
+</body>
+</html>
+
